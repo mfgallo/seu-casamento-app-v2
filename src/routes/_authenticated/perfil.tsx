@@ -1,0 +1,453 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  getMyVendor,
+  createVendor,
+  updateVendor,
+  listCategories,
+} from "@/lib/marketplace.functions";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, User, Store, Heart } from "lucide-react";
+
+export const Route = createFileRoute("/_authenticated/perfil")({
+  head: () => ({
+    meta: [
+      { title: "Meu Perfil — Ateliê do Sim" },
+      {
+        name: "description",
+        content: "Gerencie seus dados e cadastro de fornecedor na Ateliê do Sim.",
+      },
+      { property: "og:title", content: "Meu Perfil — Ateliê do Sim" },
+      {
+        property: "og:description",
+        content: "Gerencie seus dados e cadastro de fornecedor na Ateliê do Sim.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: PerfilPage,
+});
+
+function PerfilPage() {
+  const { user, roles } = useAuth();
+  const isFornecedor = roles.includes("fornecedor");
+
+  return (
+    <div className="flex flex-col">
+      <section className="bg-secondary/30 py-12 sm:py-16">
+        <div className="container-tight">
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary">
+              <User className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="font-display text-3xl font-medium text-foreground sm:text-4xl">
+                Meu Perfil
+              </h1>
+              <p className="text-muted-foreground">{user?.email}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-background py-12">
+        <div className="container-tight">
+          <Tabs defaultValue="dados" className="w-full">
+            <TabsList className="bg-secondary/50">
+              <TabsTrigger value="dados">
+                <Heart className="mr-1 h-4 w-4" />
+                Dados do Casal
+              </TabsTrigger>
+              {isFornecedor && (
+                <TabsTrigger value="fornecedor">
+                  <Store className="mr-1 h-4 w-4" />
+                  Fornecedor
+                </TabsTrigger>
+              )}
+            </TabsList>
+
+            <TabsContent value="dados" className="mt-6">
+              <ProfileForm />
+            </TabsContent>
+
+            {isFornecedor && (
+              <TabsContent value="fornecedor" className="mt-6">
+                <VendorForm />
+              </TabsContent>
+            )}
+          </Tabs>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ProfileForm() {
+  const { user } = useAuth();
+  const [profile, setProfile] = useState({
+    full_name: "",
+    phone: "",
+    wedding_date: "",
+    partner_name: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    async function loadProfile() {
+      if (!user) return;
+      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      if (data) {
+        setProfile({
+          full_name: data.full_name ?? "",
+          phone: data.phone ?? "",
+          wedding_date: data.wedding_date ? (data.wedding_date.split("T")[0] ?? "") : "",
+          partner_name: data.partner_name ?? "",
+        });
+      }
+    }
+    void loadProfile();
+  }, [user]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    setIsLoading(true);
+    setMessage("");
+
+    const { error } = await supabase.from("profiles").upsert({
+      id: user.id,
+      full_name: profile.full_name || null,
+      phone: profile.phone || null,
+      wedding_date: profile.wedding_date || null,
+      partner_name: profile.partner_name || null,
+      updated_at: new Date().toISOString(),
+    });
+
+    if (error) {
+      setMessage(error.message);
+    } else {
+      setMessage("Perfil atualizado com sucesso!");
+    }
+    setIsLoading(false);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-display text-xl">Dados do casal</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="grid gap-5 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="full_name">Nome completo</Label>
+            <Input
+              id="full_name"
+              value={profile.full_name}
+              onChange={(e) => setProfile((p) => ({ ...p, full_name: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="phone">Telefone</Label>
+            <Input
+              id="phone"
+              value={profile.phone}
+              onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="partner_name">Nome do(a) parceiro(a)</Label>
+            <Input
+              id="partner_name"
+              value={profile.partner_name}
+              onChange={(e) => setProfile((p) => ({ ...p, partner_name: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="wedding_date">Data prevista do casamento</Label>
+            <Input
+              id="wedding_date"
+              type="date"
+              value={profile.wedding_date}
+              onChange={(e) => setProfile((p) => ({ ...p, wedding_date: e.target.value }))}
+            />
+          </div>
+
+          {message && (
+            <div className="rounded-lg bg-primary/10 px-3 py-2 text-sm text-primary sm:col-span-2">
+              {message}
+            </div>
+          )}
+
+          <div className="sm:col-span-2">
+            <Button type="submit" className="rounded-full bg-primary" disabled={isLoading}>
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar alterações"}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+function VendorForm() {
+  const [vendor, setVendor] = useState<{
+    id?: string;
+    name: string;
+    slug: string;
+    categoryId: string;
+    description: string;
+    services: string;
+    contactEmail: string;
+    contactPhone: string;
+    websiteUrl: string;
+    instagramUrl: string;
+    city: string;
+    state: string;
+    minPrice: string;
+    maxPrice: string;
+    status?: string;
+  }>({
+    name: "",
+    slug: "",
+    categoryId: "",
+    description: "",
+    services: "",
+    contactEmail: "",
+    contactPhone: "",
+    websiteUrl: "",
+    instagramUrl: "",
+    city: "",
+    state: "",
+    minPrice: "",
+    maxPrice: "",
+  });
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    async function loadData() {
+      const [vendorResult, categoriesResult] = await Promise.all([getMyVendor(), listCategories()]);
+      setCategories(categoriesResult);
+
+      if (vendorResult) {
+        setVendor({
+          id: vendorResult.id,
+          name: vendorResult.name ?? "",
+          slug: vendorResult.slug ?? "",
+          categoryId: vendorResult.category_id ?? "",
+          description: vendorResult.description ?? "",
+          services: vendorResult.services ?? "",
+          contactEmail: vendorResult.contact_email ?? "",
+          contactPhone: vendorResult.contact_phone ?? "",
+          websiteUrl: vendorResult.website_url ?? "",
+          instagramUrl: vendorResult.instagram_url ?? "",
+          city: vendorResult.city ?? "",
+          state: vendorResult.state ?? "",
+          minPrice: vendorResult.min_price?.toString() ?? "",
+          maxPrice: vendorResult.max_price?.toString() ?? "",
+          status: vendorResult.status ?? "pending",
+        });
+      }
+    }
+    void loadData();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setMessage("");
+
+    try {
+      const payload = {
+        name: vendor.name,
+        slug: vendor.slug,
+        categoryId: vendor.categoryId,
+        description: vendor.description,
+        services: vendor.services,
+        contactEmail: vendor.contactEmail,
+        contactPhone: vendor.contactPhone,
+        websiteUrl: vendor.websiteUrl,
+        instagramUrl: vendor.instagramUrl,
+        city: vendor.city,
+        state: vendor.state,
+        minPrice: vendor.minPrice ? Number(vendor.minPrice) : undefined,
+        maxPrice: vendor.maxPrice ? Number(vendor.maxPrice) : undefined,
+      };
+
+      if (vendor.id) {
+        await updateVendor({ data: { id: vendor.id, ...payload } });
+      } else {
+        await createVendor({ data: payload });
+      }
+
+      setMessage("Cadastro salvo com sucesso! Aguardando aprovação.");
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Erro ao salvar cadastro");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-display text-xl">Cadastro de fornecedor</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {vendor.status && (
+          <div className="mb-4 rounded-lg bg-secondary px-3 py-2 text-sm text-secondary-foreground">
+            Status do cadastro: <span className="font-medium capitalize">{vendor.status}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="grid gap-5 sm:grid-cols-2">
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="v-name">Nome da empresa</Label>
+            <Input
+              id="v-name"
+              value={vendor.name}
+              onChange={(e) => setVendor((v) => ({ ...v, name: e.target.value }))}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="v-slug">Slug (identificador único)</Label>
+            <Input
+              id="v-slug"
+              value={vendor.slug}
+              onChange={(e) => setVendor((v) => ({ ...v, slug: e.target.value }))}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="v-category">Categoria</Label>
+            <select
+              id="v-category"
+              value={vendor.categoryId}
+              onChange={(e) => setVendor((v) => ({ ...v, categoryId: e.target.value }))}
+              required
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option value="">Selecione</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="v-description">Descrição</Label>
+            <Textarea
+              id="v-description"
+              value={vendor.description}
+              onChange={(e) => setVendor((v) => ({ ...v, description: e.target.value }))}
+              required
+              minLength={10}
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="v-services">Serviços oferecidos</Label>
+            <Input
+              id="v-services"
+              value={vendor.services}
+              onChange={(e) => setVendor((v) => ({ ...v, services: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="v-email">Email de contato</Label>
+            <Input
+              id="v-email"
+              type="email"
+              value={vendor.contactEmail}
+              onChange={(e) => setVendor((v) => ({ ...v, contactEmail: e.target.value }))}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="v-phone">Telefone</Label>
+            <Input
+              id="v-phone"
+              value={vendor.contactPhone}
+              onChange={(e) => setVendor((v) => ({ ...v, contactPhone: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="v-website">Website</Label>
+            <Input
+              id="v-website"
+              type="url"
+              value={vendor.websiteUrl}
+              onChange={(e) => setVendor((v) => ({ ...v, websiteUrl: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="v-instagram">Instagram</Label>
+            <Input
+              id="v-instagram"
+              type="url"
+              value={vendor.instagramUrl}
+              onChange={(e) => setVendor((v) => ({ ...v, instagramUrl: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="v-city">Cidade</Label>
+            <Input
+              id="v-city"
+              value={vendor.city}
+              onChange={(e) => setVendor((v) => ({ ...v, city: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="v-state">Estado</Label>
+            <Input
+              id="v-state"
+              value={vendor.state}
+              onChange={(e) => setVendor((v) => ({ ...v, state: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="v-min">Preço mínimo (R$)</Label>
+            <Input
+              id="v-min"
+              type="number"
+              value={vendor.minPrice}
+              onChange={(e) => setVendor((v) => ({ ...v, minPrice: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="v-max">Preço máximo (R$)</Label>
+            <Input
+              id="v-max"
+              type="number"
+              value={vendor.maxPrice}
+              onChange={(e) => setVendor((v) => ({ ...v, maxPrice: e.target.value }))}
+            />
+          </div>
+
+          {message && (
+            <div className="rounded-lg bg-primary/10 px-3 py-2 text-sm text-primary sm:col-span-2">
+              {message}
+            </div>
+          )}
+
+          <div className="sm:col-span-2">
+            <Button type="submit" className="rounded-full bg-primary" disabled={isLoading}>
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar cadastro"}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}

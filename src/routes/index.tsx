@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Heart, Calendar, Users, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EditableText } from "@/components/EditableText";
+import { EditableImage } from "@/components/EditableImage";
 import heroImage from "@/assets/hero.jpg";
 import gallery1 from "@/assets/gallery-1.jpg";
 import gallery2 from "@/assets/gallery-2.jpg";
@@ -34,13 +36,14 @@ function Index() {
       {/* Hero */}
       <section className="relative flex min-h-[85vh] items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <img
-            src={heroImage}
+          <EditableImage
+            contentKey="home.hero.image"
+            defaultSrc={heroImage}
             alt="Cerimônia de casamento ao ar livre em tons verde oliva"
             className="h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-olive/40" />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background" />
+          <div className="pointer-events-none absolute inset-0 bg-olive/40" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background" />
         </div>
 
         <div className="relative z-10 mx-auto max-w-4xl px-4 text-center sm:px-6">
@@ -48,14 +51,21 @@ function Index() {
             Assessoria de Casamentos
           </p>
           <h1 className="font-display text-4xl font-medium leading-[1.1] text-white sm:text-5xl md:text-6xl lg:text-7xl">
-            O seu grande dia,
+            <EditableText contentKey="home.hero.title_line1" defaultValue="O seu grande dia," />
             <br />
-            <span className="italic">do jeito que você sempre sonhou</span>
+            <EditableText
+              contentKey="home.hero.title_line2"
+              defaultValue="do jeito que você sempre sonhou"
+              className="italic"
+            />
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/90 sm:text-lg">
-            Planejamento completo, cerimonial impecável e uma curadoria exclusiva de fornecedores
-            para transformar seu casamento em uma experiência inesquecível.
-          </p>
+          <EditableText
+            as="p"
+            contentKey="home.hero.subtitle"
+            defaultValue="Planejamento completo, cerimonial impecável e uma curadoria exclusiva de fornecedores para transformar seu casamento em uma experiência inesquecível."
+            className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/90 sm:text-lg"
+            multiline
+          />
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link to="/auth">
               <Button
@@ -164,24 +174,27 @@ function Index() {
           </div>
 
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            <div className="group relative aspect-[4/5] overflow-hidden rounded-2xl sm:col-span-2">
-              <img
-                src={gallery1}
+            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl sm:col-span-2">
+              <EditableImage
+                contentKey="galeria.foto_1"
+                defaultSrc={gallery1}
                 alt="Casal dançando na festa de casamento"
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
             </div>
             <div className="grid gap-4 sm:grid-cols-1">
-              <div className="group relative aspect-[4/3] overflow-hidden rounded-2xl">
-                <img
-                  src={gallery2}
+              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
+                <EditableImage
+                  contentKey="galeria.foto_2"
+                  defaultSrc={gallery2}
                   alt="Mesa de decoração de casamento"
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
-              <div className="group relative aspect-[4/3] overflow-hidden rounded-2xl">
-                <img
-                  src={gallery3}
+              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
+                <EditableImage
+                  contentKey="galeria.foto_3"
+                  defaultSrc={gallery3}
                   alt="Buquê de noiva em tons suaves"
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />

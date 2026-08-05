@@ -80,6 +80,27 @@ export type Database = {
         };
         Relationships: [];
       };
+      site_content: {
+        Row: {
+          key: string;
+          type: string;
+          updated_at: string;
+          value: string;
+        };
+        Insert: {
+          key: string;
+          type: string;
+          updated_at?: string;
+          value: string;
+        };
+        Update: {
+          key?: string;
+          type?: string;
+          updated_at?: string;
+          value?: string;
+        };
+        Relationships: [];
+      };
       testimonials: {
         Row: {
           author_name: string;

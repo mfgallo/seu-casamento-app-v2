@@ -151,6 +151,9 @@ function RegisterForm() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [weddingDate, setWeddingDate] = useState("");
+  const [partnerName, setPartnerName] = useState("");
   const [role, setRole] = useState<"noivo" | "fornecedor">("noivo");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -162,7 +165,7 @@ function RegisterForm() {
     setIsLoading(true);
 
     try {
-      await signUp({ data: { email, password, fullName, role } });
+      await signUp({ data: { email, password, fullName, role, phone, weddingDate, partnerName } });
       setSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao cadastrar");
@@ -219,6 +222,37 @@ function RegisterForm() {
           onChange={(e) => setPassword(e.target.value)}
           required
           minLength={6}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="phone">Telefone</Label>
+        <Input
+          id="phone"
+          type="tel"
+          placeholder="(11) 99999-9999"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="weddingDate">Data do casamento</Label>
+        <Input
+          id="weddingDate"
+          type="date"
+          value={weddingDate}
+          onChange={(e) => setWeddingDate(e.target.value)}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="partnerName">Nome do(a) parceiro(a)</Label>
+        <Input
+          id="partnerName"
+          placeholder="Nome de quem vai casar com você"
+          value={partnerName}
+          onChange={(e) => setPartnerName(e.target.value)}
+          required
         />
       </div>
 

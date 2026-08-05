@@ -6,6 +6,9 @@ const SignUpInput = z.object({
   password: z.string().min(6),
   fullName: z.string().min(2),
   role: z.enum(["noivo", "fornecedor"]),
+  phone: z.string().min(8),
+  weddingDate: z.string().min(1),
+  partnerName: z.string().min(2),
 });
 
 const SignInInput = z.object({
@@ -39,6 +42,9 @@ export const signUp = createServerFn({ method: "POST" })
     const { error: profileError } = await supabaseAdmin.from("profiles").insert({
       id: userId,
       full_name: data.fullName,
+      phone: data.phone,
+      wedding_date: data.weddingDate,
+      partner_name: data.partnerName,
     });
 
     if (profileError) {

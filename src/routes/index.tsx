@@ -3,10 +3,8 @@ import { ArrowRight, Heart, Calendar, Users, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EditableText } from "@/components/EditableText";
 import { EditableImage } from "@/components/EditableImage";
+import { EditableGallery } from "@/components/EditableGallery";
 import heroImage from "@/assets/hero.jpg";
-import gallery1 from "@/assets/gallery-1.jpg";
-import gallery2 from "@/assets/gallery-2.jpg";
-import gallery3 from "@/assets/gallery-3.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -173,34 +171,7 @@ function Index() {
             </Link>
           </div>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl sm:col-span-2">
-              <EditableImage
-                contentKey="galeria.foto_1"
-                defaultSrc={gallery1}
-                alt="Casal dançando na festa de casamento"
-                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-1">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
-                <EditableImage
-                  contentKey="galeria.foto_2"
-                  defaultSrc={gallery2}
-                  alt="Mesa de decoração de casamento"
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
-                <EditableImage
-                  contentKey="galeria.foto_3"
-                  defaultSrc={gallery3}
-                  alt="Buquê de noiva em tons suaves"
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-            </div>
-          </div>
+          <EditableGallery limit={3} readOnly className="mt-10" />
         </div>
       </section>
 

@@ -41,6 +41,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      gallery_photos: {
+        Row: {
+          alt_text: string;
+          created_at: string;
+          display_order: number;
+          id: string;
+          image_url: string;
+        };
+        Insert: {
+          alt_text?: string;
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          image_url: string;
+        };
+        Update: {
+          alt_text?: string;
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          image_url?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           avatar_url: string | null;

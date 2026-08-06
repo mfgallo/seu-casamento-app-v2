@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 export function EditableTestimonials() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isAuthenticated } = useAuth();
   const { data: testimonials, isLoading } = useTestimonials();
   const deleteTestimonial = useDeleteTestimonial();
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -16,7 +16,7 @@ export function EditableTestimonials() {
 
   const list = testimonials ?? [];
 
-  if (!isLoading && list.length === 0 && !isAdmin) {
+  if (!isLoading && list.length === 0 && !isAuthenticated) {
     return (
       <div className="rounded-2xl border border-border bg-card p-12 text-center">
         <p className="text-muted-foreground">Nenhum depoimento publicado ainda.</p>
@@ -62,7 +62,7 @@ export function EditableTestimonials() {
         </div>
       ))}
 
-      {isAdmin && (
+      {isAuthenticated && (
         <AddTestimonialCard
           adding={adding}
           onOpen={() => setAdding(true)}

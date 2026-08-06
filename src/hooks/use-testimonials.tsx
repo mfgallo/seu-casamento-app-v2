@@ -34,8 +34,8 @@ export function useAddTestimonial() {
       const current = queryClient.getQueryData<Testimonial[]>(QUERY_KEY) ?? [];
       const nextOrder = current.length ? Math.max(...current.map((t) => t.display_order)) + 1 : 0;
 
-      // is_approved: true — quem está adicionando já é admin, não precisa de
-      // um fluxo de moderação separado.
+      // is_approved: true — publica na hora, sem fila de moderação. Qualquer
+      // usuário autenticado pode inserir (RLS); só admin pode apagar depois.
       const { error } = await supabase.from("testimonials").insert({
         author_name: input.authorName,
         author_title: input.authorTitle || null,

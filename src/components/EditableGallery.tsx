@@ -8,11 +8,9 @@ type EditableGalleryProps = {
   /** Mostra só as N primeiras fotos (ex: prévia na Home). Sem isso, mostra todas. */
   limit?: number;
   className?: string;
-  /** Prévias (Home) usam readOnly: os controles de admin só aparecem na Galeria completa. */
-  readOnly?: boolean;
 };
 
-export function EditableGallery({ limit, className, readOnly = false }: EditableGalleryProps) {
+export function EditableGallery({ limit, className }: EditableGalleryProps) {
   const { isAdmin } = useAuth();
   const { data: photos, isLoading } = useGalleryPhotos();
   const addPhoto = useAddGalleryPhoto();
@@ -20,7 +18,7 @@ export function EditableGallery({ limit, className, readOnly = false }: Editable
   const inputRef = useRef<HTMLInputElement>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const canManage = isAdmin && !readOnly;
+  const canManage = isAdmin;
   const all = photos ?? [];
   const visible = limit ? all.slice(0, limit) : all;
 

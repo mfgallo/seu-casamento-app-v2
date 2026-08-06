@@ -9,6 +9,7 @@ import {
   Music,
   Flower2,
 } from "lucide-react";
+import { EditableText } from "@/components/EditableText";
 
 export const Route = createFileRoute("/servicos")({
   head: () => ({
@@ -112,7 +113,7 @@ function ServicosPage() {
       <section className="bg-background py-16 sm:py-24">
         <div className="container-tight">
           <div className="grid gap-8 md:grid-cols-2">
-            {services.map((service) => (
+            {services.map((service, index) => (
               <div
                 key={service.title}
                 className="rounded-2xl border border-border bg-card p-8 transition-all hover:border-olive/30 hover:shadow-lg"
@@ -120,10 +121,19 @@ function ServicosPage() {
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary">
                   <service.icon className="h-6 w-6 text-olive" />
                 </div>
-                <h2 className="mt-6 font-display text-2xl font-medium text-foreground">
-                  {service.title}
-                </h2>
-                <p className="mt-3 leading-relaxed text-muted-foreground">{service.description}</p>
+                <EditableText
+                  as="h2"
+                  contentKey={`servicos.card_${index}.title`}
+                  defaultValue={service.title}
+                  className="mt-6 font-display text-2xl font-medium text-foreground"
+                />
+                <EditableText
+                  as="p"
+                  contentKey={`servicos.card_${index}.description`}
+                  defaultValue={service.description}
+                  className="mt-3 leading-relaxed text-muted-foreground"
+                  multiline
+                />
                 <ul className="mt-5 space-y-2">
                   {service.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-sm text-foreground">

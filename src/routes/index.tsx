@@ -171,7 +171,7 @@ function Index() {
             </Link>
           </div>
 
-          <EditableGallery limit={3} readOnly className="mt-10" />
+          <EditableGallery limit={3} className="mt-10" />
         </div>
       </section>
 

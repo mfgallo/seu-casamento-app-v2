@@ -159,21 +159,3 @@ export const updateVendor = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
-
-export const listPublicTestimonials = createServerFn({ method: "GET" }).handler(async () => {
-  const { createClient } = await import("@supabase/supabase-js");
-  const supabase = createClient(
-    process.env["SUPABASE_URL"]!,
-    process.env["SUPABASE_PUBLISHABLE_KEY"]!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
-
-  const { data, error } = await supabase
-    .from("testimonials")
-    .select("*")
-    .eq("is_approved", true)
-    .order("display_order", { ascending: true });
-
-  if (error) throw new Error(error.message);
-  return data ?? [];
-});

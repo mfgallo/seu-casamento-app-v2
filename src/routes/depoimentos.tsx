@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { listPublicTestimonials } from "@/lib/marketplace.functions";
-import { Quote } from "lucide-react";
+import { EditableTestimonials } from "@/components/EditableTestimonials";
 
 export const Route = createFileRoute("/depoimentos")({
   head: () => ({
@@ -22,21 +20,10 @@ export const Route = createFileRoute("/depoimentos")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  loader: async ({ context }) => {
-    await context.queryClient.ensureQueryData({
-      queryKey: ["testimonials"],
-      queryFn: () => listPublicTestimonials(),
-    });
-  },
   component: DepoimentosPage,
 });
 
 function DepoimentosPage() {
-  const { data: testimonials } = useSuspenseQuery({
-    queryKey: ["testimonials"],
-    queryFn: () => listPublicTestimonials(),
-  });
-
   return (
     <div className="flex flex-col">
       <section className="bg-secondary/30 py-16 sm:py-24">
@@ -56,35 +43,7 @@ function DepoimentosPage() {
 
       <section className="bg-background py-16 sm:py-24">
         <div className="container-tight">
-          {testimonials && testimonials.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {testimonials.map((testimonial) => (
-                <div
-                  key={testimonial.id}
-                  className="relative rounded-2xl border border-border bg-card p-8"
-                >
-                  <Quote className="absolute right-6 top-6 h-8 w-8 text-olive/20" />
-                  <p className="relative z-10 text-lg leading-relaxed text-foreground">
-                    &ldquo;{testimonial.quote}&rdquo;
-                  </p>
-                  <div className="mt-6 border-t border-border pt-6">
-                    <p className="font-display font-medium text-foreground">
-                      {testimonial.author_name}
-                    </p>
-                    {testimonial.wedding_date && (
-                      <p className="text-sm text-muted-foreground">
-                        Casamento em {testimonial.wedding_date}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-2xl border border-border bg-card p-12 text-center">
-              <p className="text-muted-foreground">Nenhum depoimento publicado ainda.</p>
-            </div>
-          )}
+          <EditableTestimonials />
         </div>
       </section>
     </div>

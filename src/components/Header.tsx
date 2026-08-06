@@ -2,6 +2,7 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { Menu, X, User, LogOut, Store } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { EditableText } from "@/components/EditableText";
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -25,7 +26,7 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link to="/" className="font-serif text-2xl font-semibold tracking-tight text-foreground">
-          Ateliê do Sim
+          <EditableText contentKey="header.brand_name" defaultValue="Ateliê do Sim" />
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">

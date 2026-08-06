@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
+import { EditableText } from "@/components/EditableText";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -9,11 +10,16 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
-            <h3 className="font-serif text-xl font-semibold text-foreground">Ateliê do Sim</h3>
-            <p className="mt-3 max-w-xs text-sm text-muted-foreground">
-              Assessoria completa para casamentos inesquecíveis. Cuidamos de cada detalhe para que
-              você viva cada momento.
-            </p>
+            <h3 className="font-serif text-xl font-semibold text-foreground">
+              <EditableText contentKey="footer.brand_name" defaultValue="Ateliê do Sim" />
+            </h3>
+            <EditableText
+              as="p"
+              contentKey="footer.tagline"
+              defaultValue="Assessoria completa para casamentos inesquecíveis. Cuidamos de cada detalhe para que você viva cada momento."
+              className="mt-3 max-w-xs text-sm text-muted-foreground"
+              multiline
+            />
           </div>
 
           <div>
@@ -54,9 +60,15 @@ export function Footer() {
               Contato
             </h4>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-              <li>contato@ateledosim.com.br</li>
-              <li>+55 (11) 99999-9999</li>
-              <li>São Paulo, SP</li>
+              <li>
+                <EditableText contentKey="footer.email" defaultValue="contato@ateledosim.com.br" />
+              </li>
+              <li>
+                <EditableText contentKey="footer.phone" defaultValue="+55 (11) 99999-9999" />
+              </li>
+              <li>
+                <EditableText contentKey="footer.address" defaultValue="São Paulo, SP" />
+              </li>
             </ul>
           </div>
         </div>

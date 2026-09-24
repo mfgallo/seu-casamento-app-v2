@@ -1,13 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { supabase } from "@/integrations/supabase/client";
+import { apiFetch } from "@/lib/api-client";
 import {
   getMyVendor,
   createVendor,
   updateVendor,
   listCategories,
-} from "@/lib/marketplace.functions";
+  type Category,
+} from "@/lib/marketplace-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -90,8 +91,14 @@ function PerfilPage() {
   );
 }
 
+type ProfileResponse = {
+  full_name: string | null;
+  phone: string | null;
+  wedding_date: string | null;
+  partner_name: string | null;
+};
+
 function ProfileForm() {
-  const { user } = useAuth();
   const [profile, setProfile] = useState({
     full_name: "",
     phone: "",
@@ -103,41 +110,38 @@ function ProfileForm() {
 
   useEffect(() => {
     async function loadProfile() {
-      if (!user) return;
-      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-      if (data) {
-        setProfile({
-          full_name: data.full_name ?? "",
-          phone: data.phone ?? "",
-          wedding_date: data.wedding_date ? (data.wedding_date.split("T")[0] ?? "") : "",
-          partner_name: data.partner_name ?? "",
-        });
-      }
+      const data = await apiFetch<ProfileResponse>("/profiles/me");
+      setProfile({
+        full_name: data.full_name ?? "",
+        phone: data.phone ?? "",
+        wedding_date: data.wedding_date ? (data.wedding_date.split("T")[0] ?? "") : "",
+        partner_name: data.partner_name ?? "",
+      });
     }
     void loadProfile();
-  }, [user]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
     setIsLoading(true);
     setMessage("");
 
-    const { error } = await supabase.from("profiles").upsert({
-      id: user.id,
-      full_name: profile.full_name || null,
-      phone: profile.phone || null,
-      wedding_date: profile.wedding_date || null,
-      partner_name: profile.partner_name || null,
-      updated_at: new Date().toISOString(),
-    });
-
-    if (error) {
-      setMessage(error.message);
-    } else {
+    try {
+      await apiFetch("/profiles/me", {
+        method: "PUT",
+        body: {
+          full_name: profile.full_name || null,
+          phone: profile.phone || null,
+          wedding_date: profile.wedding_date || null,
+          partner_name: profile.partner_name || null,
+        },
+      });
       setMessage("Perfil atualizado com sucesso!");
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Erro ao salvar perfil");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
@@ -199,26 +203,10 @@ function ProfileForm() {
 }
 
 function VendorForm() {
-  const [vendor, setVendor] = useState<{
-    id?: string;
-    name: string;
-    slug: string;
-    categoryId: string;
-    description: string;
-    services: string;
-    contactEmail: string;
-    contactPhone: string;
-    websiteUrl: string;
-    instagramUrl: string;
-    city: string;
-    state: string;
-    minPrice: string;
-    maxPrice: string;
-    status?: string;
-  }>({
+  const [vendor, setVendor] = useState({
+    hasVendor: false,
     name: "",
-    slug: "",
-    categoryId: "",
+    categorySlug: "",
     description: "",
     services: "",
     contactEmail: "",
@@ -229,8 +217,9 @@ function VendorForm() {
     state: "",
     minPrice: "",
     maxPrice: "",
+    status: "" as string,
   });
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -241,10 +230,9 @@ function VendorForm() {
 
       if (vendorResult) {
         setVendor({
-          id: vendorResult.id,
+          hasVendor: true,
           name: vendorResult.name ?? "",
-          slug: vendorResult.slug ?? "",
-          categoryId: vendorResult.category_id ?? "",
+          categorySlug: vendorResult.category_slug ?? "",
           description: vendorResult.description ?? "",
           services: vendorResult.services ?? "",
           contactEmail: vendorResult.contact_email ?? "",
@@ -269,25 +257,25 @@ function VendorForm() {
 
     try {
       const payload = {
+        category_slug: vendor.categorySlug,
         name: vendor.name,
-        slug: vendor.slug,
-        categoryId: vendor.categoryId,
         description: vendor.description,
-        services: vendor.services,
-        contactEmail: vendor.contactEmail,
-        contactPhone: vendor.contactPhone,
-        websiteUrl: vendor.websiteUrl,
-        instagramUrl: vendor.instagramUrl,
-        city: vendor.city,
-        state: vendor.state,
-        minPrice: vendor.minPrice ? Number(vendor.minPrice) : undefined,
-        maxPrice: vendor.maxPrice ? Number(vendor.maxPrice) : undefined,
+        services: vendor.services || undefined,
+        contact_email: vendor.contactEmail || undefined,
+        contact_phone: vendor.contactPhone || undefined,
+        website_url: vendor.websiteUrl || undefined,
+        instagram_url: vendor.instagramUrl || undefined,
+        city: vendor.city || undefined,
+        state: vendor.state || undefined,
+        min_price: vendor.minPrice ? Number(vendor.minPrice) : undefined,
+        max_price: vendor.maxPrice ? Number(vendor.maxPrice) : undefined,
       };
 
-      if (vendor.id) {
-        await updateVendor({ data: { id: vendor.id, ...payload } });
+      if (vendor.hasVendor) {
+        await updateVendor(payload);
       } else {
-        await createVendor({ data: payload });
+        await createVendor(payload);
+        setVendor((v) => ({ ...v, hasVendor: true, status: "pending" }));
       }
 
       setMessage("Cadastro salvo com sucesso! Aguardando aprovação.");
@@ -321,26 +309,17 @@ function VendorForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="v-slug">Slug (identificador único)</Label>
-            <Input
-              id="v-slug"
-              value={vendor.slug}
-              onChange={(e) => setVendor((v) => ({ ...v, slug: e.target.value }))}
-              required
-            />
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="v-category">Categoria</Label>
             <select
               id="v-category"
-              value={vendor.categoryId}
-              onChange={(e) => setVendor((v) => ({ ...v, categoryId: e.target.value }))}
+              value={vendor.categorySlug}
+              onChange={(e) => setVendor((v) => ({ ...v, categorySlug: e.target.value }))}
               required
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <option value="">Selecione</option>
               {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
+                <option key={cat.slug} value={cat.slug}>
                   {cat.name}
                 </option>
               ))}

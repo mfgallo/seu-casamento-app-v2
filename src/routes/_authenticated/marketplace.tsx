@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Search, MapPin, ArrowRight, Store } from "lucide-react";
-import { listApprovedVendors, listCategories } from "@/lib/marketplace.functions";
+import { listApprovedVendors, listCategories } from "@/lib/marketplace-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -46,12 +46,14 @@ function MarketplacePage() {
     queryKey: ["vendors", selectedCategory, search],
     queryFn: () =>
       listApprovedVendors({
-        data: {
-          categorySlug: selectedCategory ?? undefined,
-          search: search || undefined,
-        },
+        categorySlug: selectedCategory ?? undefined,
+        search: search || undefined,
       }),
   });
+
+  const categoryNameBySlug = Object.fromEntries(
+    (categories ?? []).map((category) => [category.slug, category.name]),
+  );
 
   return (
     <div className="flex flex-col">
@@ -97,7 +99,7 @@ function MarketplacePage() {
                   </button>
                   {categories?.map((category) => (
                     <button
-                      key={category.id}
+                      key={category.slug}
                       onClick={() => setSelectedCategory(category.slug)}
                       className={`rounded-full px-3 py-1.5 text-sm transition-colors lg:rounded-lg lg:px-0 ${
                         selectedCategory === category.slug
@@ -127,7 +129,7 @@ function MarketplacePage() {
                 <div className="grid gap-6 sm:grid-cols-2">
                   {vendors.map((vendor) => (
                     <div
-                      key={vendor.id}
+                      key={vendor.vendor_id}
                       className="group flex flex-col rounded-2xl border border-border bg-card p-6 transition-all hover:border-olive/30 hover:shadow-lg"
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -136,7 +138,7 @@ function MarketplacePage() {
                             {vendor.name}
                           </h3>
                           <p className="text-sm text-muted-foreground">
-                            {(vendor.categories as { name?: string })?.name ?? "Fornecedor"}
+                            {categoryNameBySlug[vendor.category_slug] ?? "Fornecedor"}
                           </p>
                         </div>
                         {vendor.featured && (

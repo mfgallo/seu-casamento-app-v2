@@ -1,17 +1,27 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { getStoredTokens } from "@/lib/api-client";
+import { apiMe } from "@/lib/auth-api";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async ({ location }) => {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) {
+    const tokens = getStoredTokens();
+    if (!tokens) {
       throw redirect({
         to: "/auth",
         search: { redirect: location.href },
       });
     }
-    return { user: data.user };
+
+    try {
+      const me = await apiMe();
+      return { user: me };
+    } catch {
+      throw redirect({
+        to: "/auth",
+        search: { redirect: location.href },
+      });
+    }
   },
   component: () => <Outlet />,
 });

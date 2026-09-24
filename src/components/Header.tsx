@@ -1,6 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, X, User, LogOut, Store } from "lucide-react";
+import { Menu, X, User, LogOut, Store, Users } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { EditableText } from "@/components/EditableText";
 
@@ -54,10 +54,11 @@ export function Header() {
               </Link>
               {isAdmin && (
                 <Link
-                  to="/perfil"
+                  to="/convidados"
                   className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  Admin
+                  <Users className="h-4 w-4" />
+                  Convidados
                 </Link>
               )}
               <Link
@@ -118,6 +119,16 @@ export function Header() {
                   <Store className="h-4 w-4" />
                   Marketplace
                 </Link>
+                {isAdmin && (
+                  <Link
+                    to="/convidados"
+                    onClick={() => setMobileOpen(false)}
+                    className="inline-flex items-center gap-2 text-base font-medium text-foreground"
+                  >
+                    <Users className="h-4 w-4" />
+                    Convidados
+                  </Link>
+                )}
                 <Link
                   to="/perfil"
                   onClick={() => setMobileOpen(false)}

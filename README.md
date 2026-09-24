@@ -1,9 +1,10 @@
 # Ateliê do Sim — Frontend
 
 Site institucional + área logada (marketplace de fornecedores) para uma
-assessoria de casamentos. Full-stack em React com SSR via TanStack Start,
-banco de dados e autenticação no Supabase, e um assistente de chat com IA
-(OpenAI).
+assessoria de casamentos. Full-stack em React com SSR via TanStack Start.
+Dados, autenticação (AWS Cognito) e armazenamento (DynamoDB + S3) vivem no
+backend [`whatsvg`](../whatsvg) — este app é um cliente HTTP dessa API, sem
+banco de dados próprio. Tem também um assistente de chat com IA (OpenAI).
 
 Veja [DOCUMENTATION.md](./DOCUMENTATION.md) para detalhes técnicos completos
 (arquitetura, rotas, autenticação, banco de dados).
@@ -13,16 +14,17 @@ Veja [DOCUMENTATION.md](./DOCUMENTATION.md) para detalhes técnicos completos
 - [TanStack Start](https://tanstack.com/start) (React 19, SSR) + [TanStack Router](https://tanstack.com/router) (file-based routing)
 - Vite 8 + [Nitro](https://v3.nitro.build/) (empacota o servidor para o provedor de deploy)
 - Tailwind CSS v4 + shadcn/ui (Radix UI)
-- [Supabase](https://supabase.com/) (Postgres + Auth + RLS)
+- Backend próprio ([`whatsvg`](../whatsvg), FastAPI + DynamoDB + Cognito na AWS) — chamado via `fetch` (`src/lib/api-client.ts`), sem SDK de banco no frontend
 - [Vercel AI SDK](https://ai-sdk.dev/) com OpenAI para o chat "Assistente Noiva"
 
 ## Rodando localmente
 
-Requer Node.js 20+.
+Requer Node.js 20+ e o backend [`whatsvg`](../whatsvg) rodando (localmente via
+`uvicorn` + DynamoDB Local, ou apontando para uma API já publicada na AWS).
 
 ```sh
 npm install
-cp .env.example .env   # depois preencha os valores reais
+cp .env.example .env   # depois preencha VITE_API_URL com a URL do backend
 npm run dev
 ```
 
@@ -34,11 +36,14 @@ terminal).
 Veja [.env.example](./.env.example) para a lista completa com explicação de
 cada uma. Resumo:
 
-| Variável                                                      | Necessária para            | Onde configurar                                                        |
-| ------------------------------------------------------------- | -------------------------- | ---------------------------------------------------------------------- |
-| `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_*` | Site inteiro (dados, auth) | `.env` local e Vercel                                                  |
-| `SUPABASE_SERVICE_ROLE_KEY`                                   | Cadastro de novos usuários | `.env` local e Vercel (nunca no client)                                |
-| `OPENAI_API_KEY`                                              | Chat "Assistente Noiva"    | `.env` local e Vercel (opcional — sem ela só o chat fica indisponível) |
+| Variável                   | Necessária para                                | Onde configurar                                                                       |
+| -------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `API_URL` / `VITE_API_URL` | Site inteiro (dados, auth, tudo via `whatsvg`) | `.env` local e no provedor de deploy                                                    |
+| `OPENAI_API_KEY`           | Chat "Assistente Noiva"                        | `.env` local e no provedor de deploy (opcional — sem ela só o chat fica indisponível) |
+
+Não há mais chave secreta de banco neste app: autenticação e permissões são
+validadas inteiramente no backend `whatsvg` (Cognito + checagem de role nas
+rotas), nunca no client.
 
 ## Scripts
 
@@ -50,22 +55,41 @@ npm run lint         # eslint
 npm run format       # prettier --write
 ```
 
-## Deploy na Vercel
+## Deploy na AWS com Terraform
 
-1. Suba este repositório para o GitHub (ou GitLab/Bitbucket).
-2. Em [vercel.com/new](https://vercel.com/new), importe o repositório — a
-   Vercel detecta o TanStack Start automaticamente graças ao plugin `nitro()`
-   em `vite.config.ts`.
-3. Em **Settings → Environment Variables**, adicione as mesmas variáveis do
-   `.env.example` (com os valores reais).
-4. Deploy. Cada push na branch conectada gera um novo deploy automaticamente.
+Hospedado como Lambda + API Gateway + CloudFront, mesmo padrão de custo
+mínimo do `whatsvg/infra/` (HTTP API em vez de REST API, CloudFront
+`PriceClass_100`, sem domínio próprio por enquanto). Diferença importante: o
+`VITE_API_URL`/`API_URL` é injetado no bundle do client **em build-time** pelo
+Vite — precisa estar certo no `.env` **antes** de rodar o build, mudar depois
+não adianta (precisa buildar e subir de novo).
 
-## Banco de dados (Supabase)
+```bash
+cp .env.example .env
+# preencha API_URL/VITE_API_URL com a `api_base_url` do `terraform output`
+# do whatsvg (ver whatsvg/README.md), e OPENAI_API_KEY se quiser o chat.
 
-O schema (tabelas, RLS, seeds) vive em `supabase/migrations/`. Para aplicar em
-um novo projeto Supabase, use a [Supabase CLI](https://supabase.com/docs/guides/cli):
-
-```sh
-supabase link --project-ref <seu-project-ref>
-supabase db push
+cd infra
+terraform init
+terraform plan
+terraform apply
 ```
+
+O `scripts/build_lambda.sh` (ou `build_lambda.ps1` no Windows) roda o
+`npm run build` e empacota `.output/{server,public}` em `build/lambda.zip` —
+o `infra/lambda.tf` cai automaticamente nesse fallback (zipando `.output/`
+direto via Terraform) se o zip não existir, então rodar só `terraform apply`
+sem buildar antes também funciona, mas sempre rode o build de novo depois de
+qualquer mudança de código ou do `.env` (o zip não se atualiza sozinho).
+
+Segredos (`OPENAI_API_KEY`) vão como variável da própria Lambda, via
+`infra/terraform.tfvars` (nunca commitado):
+
+```hcl
+aws_region     = "sa-east-1"   # mesma regiao do whatsvg, por conveniencia
+openai_api_key = "sk-..."
+```
+
+Depois do primeiro `apply`, pegue a URL pública com `terraform output
+site_url` e volte no `whatsvg/infra` para restringir o CORS a esse domínio
+(`frontend_allowed_origins`, ver `whatsvg/README.md`).

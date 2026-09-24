@@ -1,8 +1,8 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { signIn, signUp } from "@/lib/auth.functions";
-import { supabase } from "@/integrations/supabase/client";
+import { apiLogin, apiSignupWithProfile } from "@/lib/auth-api";
+import { ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -80,6 +80,7 @@ function AuthPage() {
 
 function LoginForm() {
   const router = useRouter();
+  const { refresh } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -91,16 +92,11 @@ function LoginForm() {
     setIsLoading(true);
 
     try {
-      const result = await signIn({ data: { email, password } });
-      if (result.ok) {
-        await supabase.auth.setSession({
-          access_token: result.accessToken,
-          refresh_token: result.refreshToken,
-        });
-        void router.navigate({ to: "/marketplace", replace: true });
-      }
+      await apiLogin({ email, password });
+      await refresh();
+      void router.navigate({ to: "/marketplace", replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao entrar");
+      setError(err instanceof ApiError ? err.message : "Erro ao entrar");
     } finally {
       setIsLoading(false);
     }
@@ -165,10 +161,18 @@ function RegisterForm() {
     setIsLoading(true);
 
     try {
-      await signUp({ data: { email, password, fullName, role, phone, weddingDate, partnerName } });
+      await apiSignupWithProfile({
+        email,
+        password,
+        full_name: fullName,
+        role,
+        phone,
+        weddingDate,
+        partnerName,
+      });
       setSuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao cadastrar");
+      setError(err instanceof ApiError ? err.message : "Erro ao cadastrar");
     } finally {
       setIsLoading(false);
     }
@@ -217,11 +221,11 @@ function RegisterForm() {
         <Input
           id="registerPassword"
           type="password"
-          placeholder="Mínimo 6 caracteres"
+          placeholder="Mínimo 8 caracteres"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          minLength={6}
+          minLength={8}
         />
       </div>
       <div className="space-y-2">

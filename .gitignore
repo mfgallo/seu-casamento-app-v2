@@ -15,10 +15,19 @@ dist-ssr
 .nitro
 *.local
 
-# Vercel
-.vercel
+build/
+*.zip
 
-# Variáveis de ambiente (contêm chaves de Supabase/OpenAI) — nunca commitar.
+# Terraform
+infra/.terraform/
+infra/terraform.tfstate
+infra/terraform.tfstate.backup
+infra/.terraform.tfstate.lock.info
+infra/terraform.tfvars
+infra/*.tfplan
+infra/tfplan
+
+# Variáveis de ambiente (contêm chaves da API/OpenAI) — nunca commitar.
 # Use .env.example como referência do que precisa ser configurado.
 .env
 

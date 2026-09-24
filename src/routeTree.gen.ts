@@ -16,6 +16,7 @@ import { Route as DepoimentosRouteImport } from './routes/depoimentos'
 import { Route as GaleriaRouteImport } from './routes/galeria'
 import { Route as ServicosRouteImport } from './routes/servicos'
 import { Route as SobreRouteImport } from './routes/sobre'
+import { Route as AuthenticatedConvidadosRouteImport } from './routes/_authenticated/convidados'
 import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
@@ -54,6 +55,11 @@ const SobreRoute = SobreRouteImport.update({
   path: '/sobre',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedConvidadosRoute = AuthenticatedConvidadosRouteImport.update({
+  id: '/convidados',
+  path: '/convidados',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMarketplaceRoute =
   AuthenticatedMarketplaceRouteImport.update({
     id: '/marketplace',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/galeria': typeof GaleriaRoute
   '/servicos': typeof ServicosRoute
   '/sobre': typeof SobreRoute
+  '/convidados': typeof AuthenticatedConvidadosRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/api/chat': typeof ApiChatRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/galeria': typeof GaleriaRoute
   '/servicos': typeof ServicosRoute
   '/sobre': typeof SobreRoute
+  '/convidados': typeof AuthenticatedConvidadosRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/api/chat': typeof ApiChatRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/galeria': typeof GaleriaRoute
   '/servicos': typeof ServicosRoute
   '/sobre': typeof SobreRoute
+  '/_authenticated/convidados': typeof AuthenticatedConvidadosRoute
   '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/api/chat': typeof ApiChatRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/galeria'
     | '/servicos'
     | '/sobre'
+    | '/convidados'
     | '/marketplace'
     | '/perfil'
     | '/api/chat'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/galeria'
     | '/servicos'
     | '/sobre'
+    | '/convidados'
     | '/marketplace'
     | '/perfil'
     | '/api/chat'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/galeria'
     | '/servicos'
     | '/sobre'
+    | '/_authenticated/convidados'
     | '/_authenticated/marketplace'
     | '/_authenticated/perfil'
     | '/api/chat'
@@ -205,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SobreRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/convidados': {
+      id: '/_authenticated/convidados'
+      path: '/convidados'
+      fullPath: '/convidados'
+      preLoaderRoute: typeof AuthenticatedConvidadosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/marketplace': {
       id: '/_authenticated/marketplace'
       path: '/marketplace'
@@ -230,11 +249,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedConvidadosRoute: typeof AuthenticatedConvidadosRoute
   AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedConvidadosRoute: AuthenticatedConvidadosRoute,
   AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
 }

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, Loader2 } from "lucide-react";
+import { EditableText } from "@/components/EditableText";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -53,10 +54,18 @@ function AuthPage() {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary">
             <Heart className="h-5 w-5 text-primary-foreground" />
           </div>
-          <h1 className="mt-4 font-display text-3xl font-medium text-foreground">Área do Noivo</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Acesse o marketplace exclusivo e gerencie seu casamento.
-          </p>
+          <EditableText
+            as="h1"
+            contentKey="auth.title"
+            defaultValue="Área do Noivo"
+            className="mt-4 font-display text-3xl font-medium text-foreground"
+          />
+          <EditableText
+            as="p"
+            contentKey="auth.subtitle"
+            defaultValue="Acesse o marketplace exclusivo e gerencie seu casamento."
+            className="mt-2 text-sm text-muted-foreground"
+          />
         </div>
 
         <Tabs defaultValue="login" className="w-full">
@@ -182,10 +191,18 @@ function RegisterForm() {
     return (
       <div className="rounded-2xl border border-border bg-card p-6 text-center">
         <Heart className="mx-auto h-8 w-8 text-olive" />
-        <h3 className="mt-4 font-display text-xl font-medium">Cadastro realizado!</h3>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Sua conta foi criada. Agora você pode fazer login e acessar a área exclusiva.
-        </p>
+        <EditableText
+          as="h3"
+          contentKey="auth.signup_success_title"
+          defaultValue="Cadastro realizado!"
+          className="mt-4 font-display text-xl font-medium"
+        />
+        <EditableText
+          as="p"
+          contentKey="auth.signup_success_subtitle"
+          defaultValue="Sua conta foi criada. Agora você pode fazer login e acessar a área exclusiva."
+          className="mt-2 text-sm text-muted-foreground"
+        />
       </div>
     );
   }

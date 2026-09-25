@@ -1,5 +1,5 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -70,27 +70,26 @@ const STATUS_BADGE_CLASS: Record<RsvpStatus, string> = {
 
 function ConvidadosPage() {
   const { isAdmin, isLoading: authLoading } = useAuth();
-  const router = useRouter();
   const [selectedBride, setSelectedBride] = useState<string>("");
 
   const { data: brides } = useQuery({
     queryKey: ["guest-brides"],
     queryFn: listBrides,
+    enabled: isAdmin,
   });
 
-  useEffect(() => {
-    if (!authLoading && !isAdmin) {
-      void router.navigate({ to: "/perfil", replace: true });
-    }
-  }, [authLoading, isAdmin, router]);
-
-  if (authLoading || !isAdmin) {
+  if (authLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-olive" />
       </div>
     );
   }
+
+  // Admin ve/gerencia todos os casamentos da agencia; um noivo comum ve só o
+  // proprio (o backend ja aplica esse filtro sozinho, via profiles.bride_name
+  // - "selectedBride" fica sempre vazio pra ele, sem seletor pra escolher).
+  const brideNameFilter = isAdmin ? selectedBride || undefined : undefined;
 
   return (
     <div className="flex flex-col">
@@ -103,15 +102,17 @@ function ConvidadosPage() {
               </div>
               <div>
                 <h1 className="font-display text-3xl font-medium text-foreground sm:text-4xl">
-                  Convidados & Confirmações
+                  {isAdmin ? "Convidados & Confirmações" : "Meus Convidados"}
                 </h1>
                 <p className="text-muted-foreground">
-                  Importe a lista de convidados e acompanhe quem já confirmou presença.
+                  {isAdmin
+                    ? "Importe a lista de convidados e acompanhe quem já confirmou presença."
+                    : "Acompanhe as confirmações de presença do seu casamento."}
                 </p>
               </div>
             </div>
 
-            {brides && brides.length > 0 && (
+            {isAdmin && brides && brides.length > 0 && (
               <div className="space-y-1.5">
                 <label htmlFor="bride-select" className="text-sm font-medium text-foreground">
                   Casamento
@@ -137,10 +138,10 @@ function ConvidadosPage() {
 
       <section className="bg-background py-12">
         <div className="container-tight space-y-8">
-          <SummaryCards brideName={selectedBride || undefined} />
-          <ImportCard />
-          <SendInvitesCard brideName={selectedBride || undefined} />
-          <GuestListCard brideName={selectedBride || undefined} />
+          <SummaryCards brideName={brideNameFilter} />
+          {isAdmin && <ImportCard />}
+          {isAdmin && <SendInvitesCard brideName={brideNameFilter} />}
+          <GuestListCard brideName={brideNameFilter} showSendColumn={isAdmin} />
         </div>
       </section>
     </div>
@@ -416,7 +417,13 @@ function SendInvitesCard({ brideName }: { brideName?: string | undefined }) {
   );
 }
 
-function GuestListCard({ brideName }: { brideName?: string | undefined }) {
+function GuestListCard({
+  brideName,
+  showSendColumn,
+}: {
+  brideName?: string | undefined;
+  showSendColumn: boolean;
+}) {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<RsvpStatus | "all">("all");
   const [sendingId, setSendingId] = useState<string | null>(null);
@@ -476,7 +483,7 @@ function GuestListCard({ brideName }: { brideName?: string | undefined }) {
                   <TableHead>Acompanhantes confirmados</TableHead>
                   <TableHead>Chinelo</TableHead>
                   <TableHead>Observações</TableHead>
-                  <TableHead className="text-right">Convite</TableHead>
+                  {showSendColumn && <TableHead className="text-right">Convite</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -497,21 +504,23 @@ function GuestListCard({ brideName }: { brideName?: string | undefined }) {
                       {guest.shoe_size ?? "—"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{guest.notes ?? "—"}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        disabled={sendingId === guest.guest_id}
-                        onClick={() => handleSendOne(guest.guest_id)}
-                      >
-                        {sendingId === guest.guest_id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Send className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </TableCell>
+                    {showSendColumn && (
+                      <TableCell className="text-right">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          disabled={sendingId === guest.guest_id}
+                          onClick={() => handleSendOne(guest.guest_id)}
+                        >
+                          {sendingId === guest.guest_id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Send className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>

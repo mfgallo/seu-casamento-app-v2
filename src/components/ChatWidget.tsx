@@ -4,6 +4,7 @@ import { useChat } from "@ai-sdk/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { DefaultChatTransport } from "ai";
+import { EditableText } from "@/components/EditableText";
 
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
@@ -49,8 +50,18 @@ export function ChatWidget() {
                 <MessageCircle className="h-4 w-4 text-primary-foreground" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-primary-foreground">Assistente Noiva</p>
-                <p className="text-xs text-primary-foreground/80">Tire suas dúvidas</p>
+                <EditableText
+                  as="p"
+                  contentKey="chat.title"
+                  defaultValue="Assistente Noiva"
+                  className="text-sm font-semibold text-primary-foreground"
+                />
+                <EditableText
+                  as="p"
+                  contentKey="chat.subtitle"
+                  defaultValue="Tire suas dúvidas"
+                  className="text-xs text-primary-foreground/80"
+                />
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -75,9 +86,13 @@ export function ChatWidget() {
             {messages.length === 0 && (
               <div className="flex h-full flex-col items-center justify-center text-center">
                 <MessageCircle className="mb-2 h-8 w-8 text-muted-foreground/50" />
-                <p className="text-sm text-muted-foreground">
-                  Olá! Sou a Assistente Noiva. Como posso ajudar no planejamento do seu casamento?
-                </p>
+                <EditableText
+                  as="p"
+                  contentKey="chat.greeting"
+                  defaultValue="Olá! Sou a Assistente Noiva. Como posso ajudar no planejamento do seu casamento?"
+                  className="text-sm text-muted-foreground"
+                  multiline
+                />
               </div>
             )}
 
@@ -154,7 +169,7 @@ export function ChatWidget() {
           className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-lg transition-transform hover:scale-105"
         >
           <MessageCircle className="h-4 w-4" />
-          Assistente Noiva
+          <EditableText contentKey="chat.title" defaultValue="Assistente Noiva" />
         </button>
       )}
 

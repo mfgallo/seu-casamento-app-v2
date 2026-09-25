@@ -96,6 +96,7 @@ type ProfileResponse = {
   phone: string | null;
   wedding_date: string | null;
   partner_name: string | null;
+  bride_name: string | null;
 };
 
 function ProfileForm() {
@@ -104,6 +105,7 @@ function ProfileForm() {
     phone: "",
     wedding_date: "",
     partner_name: "",
+    bride_name: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -116,6 +118,7 @@ function ProfileForm() {
         phone: data.phone ?? "",
         wedding_date: data.wedding_date ? (data.wedding_date.split("T")[0] ?? "") : "",
         partner_name: data.partner_name ?? "",
+        bride_name: data.bride_name ?? "",
       });
     }
     void loadProfile();
@@ -134,6 +137,7 @@ function ProfileForm() {
           phone: profile.phone || null,
           wedding_date: profile.wedding_date || null,
           partner_name: profile.partner_name || null,
+          bride_name: profile.bride_name || null,
         },
       });
       setMessage("Perfil atualizado com sucesso!");
@@ -183,6 +187,19 @@ function ProfileForm() {
               value={profile.wedding_date}
               onChange={(e) => setProfile((p) => ({ ...p, wedding_date: e.target.value }))}
             />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="bride_name">Nome da noiva (como está na lista de convidados)</Label>
+            <Input
+              id="bride_name"
+              value={profile.bride_name}
+              onChange={(e) => setProfile((p) => ({ ...p, bride_name: e.target.value }))}
+              placeholder="Ex: Vanessa"
+            />
+            <p className="text-xs text-muted-foreground">
+              Precisa ser exatamente igual ao nome que a organização usou ao cadastrar sua lista de
+              convidados — é assim que o sistema sabe quais convidados são os seus, em "Convidados".
+            </p>
           </div>
 
           {message && (

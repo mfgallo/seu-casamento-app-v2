@@ -5,15 +5,15 @@ import { useAuth } from "@/hooks/use-auth";
 import { EditableText } from "@/components/EditableText";
 
 const navLinks = [
-  { to: "/", label: "Home" },
-  { to: "/servicos", label: "Serviços" },
-  { to: "/galeria", label: "Galeria" },
-  { to: "/sobre", label: "Sobre" },
-  { to: "/depoimentos", label: "Depoimentos" },
-];
+  { to: "/", key: "nav.home", label: "Home" },
+  { to: "/servicos", key: "nav.servicos", label: "Serviços" },
+  { to: "/galeria", key: "nav.galeria", label: "Galeria" },
+  { to: "/sobre", key: "nav.sobre", label: "Sobre" },
+  { to: "/depoimentos", key: "nav.depoimentos", label: "Depoimentos" },
+] as const;
 
 export function Header() {
-  const { isAuthenticated, isAdmin, signOut } = useAuth();
+  const { isAuthenticated, signOut } = useAuth();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -37,7 +37,7 @@ export function Header() {
               activeProps={{ className: "text-primary" }}
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              {link.label}
+              <EditableText contentKey={link.key} defaultValue={link.label} />
             </Link>
           ))}
         </nav>
@@ -52,7 +52,7 @@ export function Header() {
                 <Store className="h-4 w-4" />
                 Marketplace
               </Link>
-              {isAdmin && (
+              {isAuthenticated && (
                 <Link
                   to="/convidados"
                   className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -81,7 +81,7 @@ export function Header() {
               to="/auth"
               className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
-              Área do Noivo
+              <EditableText contentKey="header.cta_area_noivo" defaultValue="Área do Noivo" />
             </Link>
           )}
         </div>
@@ -105,7 +105,7 @@ export function Header() {
                 onClick={() => setMobileOpen(false)}
                 className="text-base font-medium text-foreground"
               >
-                {link.label}
+                <EditableText contentKey={link.key} defaultValue={link.label} />
               </Link>
             ))}
             <hr className="border-border" />
@@ -119,7 +119,7 @@ export function Header() {
                   <Store className="h-4 w-4" />
                   Marketplace
                 </Link>
-                {isAdmin && (
+                {isAuthenticated && (
                   <Link
                     to="/convidados"
                     onClick={() => setMobileOpen(false)}
@@ -154,7 +154,7 @@ export function Header() {
                 onClick={() => setMobileOpen(false)}
                 className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-center text-base font-medium text-primary-foreground"
               >
-                Área do Noivo
+                <EditableText contentKey="header.cta_area_noivo" defaultValue="Área do Noivo" />
               </Link>
             )}
           </nav>

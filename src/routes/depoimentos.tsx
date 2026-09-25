@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { EditableTestimonials } from "@/components/EditableTestimonials";
+import { EditableText } from "@/components/EditableText";
 
 export const Route = createFileRoute("/depoimentos")({
   head: () => ({
@@ -28,16 +29,25 @@ function DepoimentosPage() {
     <div className="flex flex-col">
       <section className="bg-secondary/30 py-16 sm:py-24">
         <div className="container-tight text-center">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-olive-muted">
-            Noivos felizes
-          </p>
-          <h1 className="mt-3 font-display text-4xl font-medium text-foreground sm:text-5xl">
-            Depoimentos
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-muted-foreground">
-            Histórias reais de casais que confiaram em nós para tornar o grande dia ainda mais
-            especial.
-          </p>
+          <EditableText
+            as="p"
+            contentKey="depoimentos.eyebrow"
+            defaultValue="Noivos felizes"
+            className="text-sm font-medium uppercase tracking-[0.2em] text-olive-muted"
+          />
+          <EditableText
+            as="h1"
+            contentKey="depoimentos.title"
+            defaultValue="Depoimentos"
+            className="mt-3 font-display text-4xl font-medium text-foreground sm:text-5xl"
+          />
+          <EditableText
+            as="p"
+            contentKey="depoimentos.subtitle"
+            defaultValue="Histórias reais de casais que confiaram em nós para tornar o grande dia ainda mais especial."
+            className="mx-auto mt-5 max-w-2xl text-muted-foreground"
+            multiline
+          />
         </div>
       </section>
 

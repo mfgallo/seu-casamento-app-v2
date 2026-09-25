@@ -97,16 +97,25 @@ function ServicosPage() {
     <div className="flex flex-col">
       <section className="bg-secondary/30 py-16 sm:py-24">
         <div className="container-tight text-center">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-olive-muted">
-            O que fazemos
-          </p>
-          <h1 className="mt-3 font-display text-4xl font-medium text-foreground sm:text-5xl">
-            Serviços
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-muted-foreground">
-            Oferecemos uma experiência completa de assessoria para que você viva cada momento do seu
-            casamento com leveza e segurança.
-          </p>
+          <EditableText
+            as="p"
+            contentKey="servicos.eyebrow"
+            defaultValue="O que fazemos"
+            className="text-sm font-medium uppercase tracking-[0.2em] text-olive-muted"
+          />
+          <EditableText
+            as="h1"
+            contentKey="servicos.title"
+            defaultValue="Serviços"
+            className="mt-3 font-display text-4xl font-medium text-foreground sm:text-5xl"
+          />
+          <EditableText
+            as="p"
+            contentKey="servicos.subtitle"
+            defaultValue="Oferecemos uma experiência completa de assessoria para que você viva cada momento do seu casamento com leveza e segurança."
+            className="mx-auto mt-5 max-w-2xl text-muted-foreground"
+            multiline
+          />
         </div>
       </section>
 
@@ -135,10 +144,13 @@ function ServicosPage() {
                   multiline
                 />
                 <ul className="mt-5 space-y-2">
-                  {service.features.map((feature) => (
+                  {service.features.map((feature, featureIndex) => (
                     <li key={feature} className="flex items-center gap-2 text-sm text-foreground">
-                      <span className="h-1.5 w-1.5 rounded-full bg-olive" />
-                      {feature}
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-olive" />
+                      <EditableText
+                        contentKey={`servicos.card_${index}.feature_${featureIndex}`}
+                        defaultValue={feature}
+                      />
                     </li>
                   ))}
                 </ul>

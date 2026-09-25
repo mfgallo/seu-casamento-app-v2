@@ -2,6 +2,16 @@ import { Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
 import { EditableText } from "@/components/EditableText";
 
+// Mesmas chaves do Header (src/components/Header.tsx) - editar um label aqui
+// via admin atualiza o link nos dois lugares.
+const footerNavLinks = [
+  { to: "/", key: "nav.home", label: "Home" },
+  { to: "/servicos", key: "nav.servicos", label: "Serviços" },
+  { to: "/galeria", key: "nav.galeria", label: "Galeria" },
+  { to: "/sobre", key: "nav.sobre", label: "Sobre" },
+  { to: "/depoimentos", key: "nav.depoimentos", label: "Depoimentos" },
+] as const;
+
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -23,42 +33,30 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider text-foreground">
-              Navegação
-            </h4>
+            <EditableText
+              as="h4"
+              contentKey="footer.nav_heading"
+              defaultValue="Navegação"
+              className="text-sm font-semibold uppercase tracking-wider text-foreground"
+            />
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-              <li>
-                <Link to="/" className="transition-colors hover:text-primary">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link to="/servicos" className="transition-colors hover:text-primary">
-                  Serviços
-                </Link>
-              </li>
-              <li>
-                <Link to="/galeria" className="transition-colors hover:text-primary">
-                  Galeria
-                </Link>
-              </li>
-              <li>
-                <Link to="/sobre" className="transition-colors hover:text-primary">
-                  Sobre
-                </Link>
-              </li>
-              <li>
-                <Link to="/depoimentos" className="transition-colors hover:text-primary">
-                  Depoimentos
-                </Link>
-              </li>
+              {footerNavLinks.map((link) => (
+                <li key={link.to}>
+                  <Link to={link.to} className="transition-colors hover:text-primary">
+                    <EditableText contentKey={link.key} defaultValue={link.label} />
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider text-foreground">
-              Contato
-            </h4>
+            <EditableText
+              as="h4"
+              contentKey="footer.contact_heading"
+              defaultValue="Contato"
+              className="text-sm font-semibold uppercase tracking-wider text-foreground"
+            />
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
               <li>
                 <EditableText contentKey="footer.email" defaultValue="contato@ateledosim.com.br" />
@@ -75,10 +73,16 @@ export function Footer() {
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
           <p className="text-xs text-muted-foreground">
-            © {currentYear} Ateliê do Sim. Todos os direitos reservados.
+            © {currentYear}{" "}
+            <EditableText
+              contentKey="footer.copyright_suffix"
+              defaultValue="Ateliê do Sim. Todos os direitos reservados."
+            />
           </p>
           <p className="flex items-center gap-1 text-xs text-muted-foreground">
-            Feito com <Heart className="h-3 w-3 fill-primary text-primary" /> para noivos felizes
+            <EditableText contentKey="footer.made_with_prefix" defaultValue="Feito com" />
+            <Heart className="h-3 w-3 fill-primary text-primary" />
+            <EditableText contentKey="footer.made_with_suffix" defaultValue="para noivos felizes" />
           </p>
         </div>
       </div>

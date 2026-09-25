@@ -1,7 +1,8 @@
-import { useState, type ElementType } from "react";
-import { Check, Loader2, Pencil, X } from "lucide-react";
+import { useRef, useState, type ElementType } from "react";
+import { Bold, Check, Italic, Loader2, Pencil, X } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useSiteContent, useUpdateSiteText } from "@/hooks/use-site-content";
+import { renderRichText } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
 
 type EditableTextProps = {
@@ -12,7 +13,9 @@ type EditableTextProps = {
   /** Elemento HTML a renderizar quando não está em edição (h1, p, span, ...). */
   as?: ElementType;
   className?: string;
-  /** Usa um textarea (em vez de input de uma linha) ao editar. */
+  /** Usa um textarea (em vez de input de uma linha) ao editar, e habilita
+   * negrito/itálico/quebra de linha (campos de parágrafo, não títulos/botões
+   * curtos). */
   multiline?: boolean;
 };
 
@@ -28,18 +31,55 @@ export function EditableText({
   const updateText = useUpdateSiteText();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const value = content?.[contentKey] ?? defaultValue;
+  const rendered = multiline ? renderRichText(value) : value;
+
+  const applyFormatting = (marker: string) => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const selected = draft.slice(start, end) || "texto";
+    const next = draft.slice(0, start) + marker + selected + marker + draft.slice(end);
+    setDraft(next);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(start + marker.length, start + marker.length + selected.length);
+    });
+  };
 
   if (!isAdmin) {
-    return <Tag className={className}>{value}</Tag>;
+    return <Tag className={className}>{rendered}</Tag>;
   }
 
   if (editing) {
     return (
       <div className="relative rounded-md ring-2 ring-primary ring-offset-2 ring-offset-background">
+        {multiline && (
+          <div className="mb-1 flex gap-1">
+            <button
+              type="button"
+              onClick={() => applyFormatting("**")}
+              aria-label="Negrito"
+              className="inline-flex h-6 w-6 items-center justify-center rounded border border-border bg-background text-muted-foreground hover:text-foreground"
+            >
+              <Bold className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => applyFormatting("*")}
+              aria-label="Itálico"
+              className="inline-flex h-6 w-6 items-center justify-center rounded border border-border bg-background text-muted-foreground hover:text-foreground"
+            >
+              <Italic className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
         {multiline ? (
           <textarea
+            ref={textareaRef}
             autoFocus
             rows={4}
             value={draft}
@@ -92,7 +132,7 @@ export function EditableText({
 
   return (
     <div className="group/editable relative inline-block w-full">
-      <Tag className={className}>{value}</Tag>
+      <Tag className={className}>{rendered}</Tag>
       <button
         type="button"
         onClick={() => {

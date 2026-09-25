@@ -36,12 +36,18 @@ function SobrePage() {
     <div className="flex flex-col">
       <section className="bg-secondary/30 py-16 sm:py-24">
         <div className="container-tight text-center">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-olive-muted">
-            Quem somos
-          </p>
-          <h1 className="mt-3 font-display text-4xl font-medium text-foreground sm:text-5xl">
-            Sobre nós
-          </h1>
+          <EditableText
+            as="p"
+            contentKey="sobre.eyebrow"
+            defaultValue="Quem somos"
+            className="text-sm font-medium uppercase tracking-[0.2em] text-olive-muted"
+          />
+          <EditableText
+            as="h1"
+            contentKey="sobre.page_title"
+            defaultValue="Sobre nós"
+            className="mt-3 font-display text-4xl font-medium text-foreground sm:text-5xl"
+          />
         </div>
       </section>
 

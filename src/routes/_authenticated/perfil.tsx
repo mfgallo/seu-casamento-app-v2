@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, ApiError } from "@/lib/api-client";
 import {
   getMyVendor,
   createVendor,
@@ -9,13 +9,14 @@ import {
   listCategories,
   type Category,
 } from "@/lib/marketplace-api";
+import { getMyWedding, updateMyWedding, type Wedding } from "@/lib/wedding-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, User, Store, Heart } from "lucide-react";
+import { Loader2, User, Store, Heart, MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/_authenticated/perfil")({
 function PerfilPage() {
   const { user, roles } = useAuth();
   const isFornecedor = roles.includes("fornecedor");
+  const isNoivo = roles.includes("noivo");
 
   return (
     <div className="flex flex-col">
@@ -67,6 +69,12 @@ function PerfilPage() {
                 <Heart className="mr-1 h-4 w-4" />
                 Dados do Casal
               </TabsTrigger>
+              {isNoivo && (
+                <TabsTrigger value="casamento">
+                  <MapPin className="mr-1 h-4 w-4" />
+                  Informações do Casamento
+                </TabsTrigger>
+              )}
               {isFornecedor && (
                 <TabsTrigger value="fornecedor">
                   <Store className="mr-1 h-4 w-4" />
@@ -78,6 +86,12 @@ function PerfilPage() {
             <TabsContent value="dados" className="mt-6">
               <ProfileForm />
             </TabsContent>
+
+            {isNoivo && (
+              <TabsContent value="casamento" className="mt-6">
+                <WeddingForm />
+              </TabsContent>
+            )}
 
             {isFornecedor && (
               <TabsContent value="fornecedor" className="mt-6">
@@ -199,6 +213,177 @@ function ProfileForm() {
             <p className="text-xs text-muted-foreground">
               Precisa ser exatamente igual ao nome que a organização usou ao cadastrar sua lista de
               convidados — é assim que o sistema sabe quais convidados são os seus, em "Convidados".
+            </p>
+          </div>
+
+          {message && (
+            <div className="rounded-lg bg-primary/10 px-3 py-2 text-sm text-primary sm:col-span-2">
+              {message}
+            </div>
+          )}
+
+          <div className="sm:col-span-2">
+            <Button type="submit" className="rounded-full bg-primary" disabled={isLoading}>
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar alterações"}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+function WeddingForm() {
+  const [wedding, setWedding] = useState({
+    venue_name: "",
+    venue_address: "",
+    dress_code: "",
+    padrinho_instructions: "",
+    general_instructions: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
+  const [message, setMessage] = useState("");
+  const [needsBrideName, setNeedsBrideName] = useState(false);
+
+  useEffect(() => {
+    async function loadWedding() {
+      try {
+        const data = await getMyWedding();
+        setWedding({
+          venue_name: data.venue_name ?? "",
+          venue_address: data.venue_address ?? "",
+          dress_code: data.dress_code ?? "",
+          padrinho_instructions: data.padrinho_instructions ?? "",
+          general_instructions: data.general_instructions ?? "",
+        });
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 404) {
+          setNeedsBrideName(true);
+        } else {
+          setMessage(err instanceof Error ? err.message : "Erro ao carregar informações");
+        }
+      } finally {
+        setIsFetching(false);
+      }
+    }
+    void loadWedding();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setMessage("");
+
+    try {
+      const saved: Wedding = await updateMyWedding({
+        venue_name: wedding.venue_name || undefined,
+        venue_address: wedding.venue_address || undefined,
+        dress_code: wedding.dress_code || undefined,
+        padrinho_instructions: wedding.padrinho_instructions || undefined,
+        general_instructions: wedding.general_instructions || undefined,
+      });
+      setWedding({
+        venue_name: saved.venue_name ?? "",
+        venue_address: saved.venue_address ?? "",
+        dress_code: saved.dress_code ?? "",
+        padrinho_instructions: saved.padrinho_instructions ?? "",
+        general_instructions: saved.general_instructions ?? "",
+      });
+      setMessage("Informações do casamento atualizadas com sucesso!");
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Erro ao salvar informações");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isFetching) {
+    return (
+      <Card>
+        <CardContent className="flex justify-center py-10">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (needsBrideName) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-display text-xl">Informações do casamento</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Antes de preencher as informações do casamento, preencha o campo "Nome da noiva" na aba
+            "Dados do Casal" — é ele que conecta essas informações à sua lista de convidados.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-display text-xl">Informações do casamento</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Essas informações aparecem na página de convite pessoal de cada convidado (enviada por
+          WhatsApp), junto com um mapa do local.
+        </p>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="grid gap-5 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="venue_name">Nome do local</Label>
+            <Input
+              id="venue_name"
+              value={wedding.venue_name}
+              onChange={(e) => setWedding((w) => ({ ...w, venue_name: e.target.value }))}
+              placeholder="Ex: Espaço Jardim"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="venue_address">Endereço completo</Label>
+            <Input
+              id="venue_address"
+              value={wedding.venue_address}
+              onChange={(e) => setWedding((w) => ({ ...w, venue_address: e.target.value }))}
+              placeholder="Ex: Rua das Flores, 123 - São Paulo, SP"
+            />
+            <p className="text-xs text-muted-foreground">
+              Usado para montar o mapa e o link "Abrir no Google Maps" na página do convidado.
+            </p>
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="general_instructions">Instruções gerais (todos os convidados)</Label>
+            <Textarea
+              id="general_instructions"
+              value={wedding.general_instructions}
+              onChange={(e) => setWedding((w) => ({ ...w, general_instructions: e.target.value }))}
+              placeholder="Ex: Estacionamento no local, cerimônia ao ar livre..."
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="dress_code">Vestimenta dos padrinhos/madrinhas</Label>
+            <Input
+              id="dress_code"
+              value={wedding.dress_code}
+              onChange={(e) => setWedding((w) => ({ ...w, dress_code: e.target.value }))}
+              placeholder="Ex: Traje esporte fino, tons de verde"
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="padrinho_instructions">Instruções para padrinhos/madrinhas</Label>
+            <Textarea
+              id="padrinho_instructions"
+              value={wedding.padrinho_instructions}
+              onChange={(e) => setWedding((w) => ({ ...w, padrinho_instructions: e.target.value }))}
+              placeholder="Ex: Chegar às 15h para o ensaio, ponto de encontro..."
+            />
+            <p className="text-xs text-muted-foreground">
+              Essas duas últimas seções só aparecem para convidados marcados como padrinho/madrinha.
             </p>
           </div>
 

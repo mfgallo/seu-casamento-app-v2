@@ -81,7 +81,7 @@ export function Header() {
               to="/auth"
               className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
-              <EditableText contentKey="header.cta_area_noivo" defaultValue="Área do Noivo" />
+              <EditableText contentKey="header.cta_area_noivo" defaultValue="Área dos Noivos" />
             </Link>
           )}
         </div>
@@ -154,7 +154,7 @@ export function Header() {
                 onClick={() => setMobileOpen(false)}
                 className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-center text-base font-medium text-primary-foreground"
               >
-                <EditableText contentKey="header.cta_area_noivo" defaultValue="Área do Noivo" />
+                <EditableText contentKey="header.cta_area_noivo" defaultValue="Área dos Noivos" />
               </Link>
             )}
           </nav>

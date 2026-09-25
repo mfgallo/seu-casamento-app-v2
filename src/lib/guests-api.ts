@@ -20,6 +20,7 @@ export type Guest = {
   shoe_size: string | null;
   invited_at: string | null;
   responded_at: string | null;
+  is_padrinho: boolean;
 };
 
 export type GuestSummary = {
@@ -69,6 +70,13 @@ export async function importGuestsCsv(file: File): Promise<BulkImportResult> {
   const formData = new FormData();
   formData.append("file", file);
   return apiFetch("/guests/bulk", { method: "POST", body: formData, isForm: true });
+}
+
+export async function updateGuest(
+  guestId: string,
+  fields: Partial<Pick<Guest, "is_padrinho">>,
+): Promise<Guest> {
+  return apiFetch(`/guests/${guestId}`, { method: "PATCH", body: fields });
 }
 
 export type SendInvitesResult = {

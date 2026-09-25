@@ -13,12 +13,12 @@ import { EditableText } from "@/components/EditableText";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Área do Noivo — Ateliê do Sim" },
+      { title: "Área dos Noivos — Ateliê do Sim" },
       {
         name: "description",
         content: "Entre ou cadastre-se na área exclusiva de noivos da Ateliê do Sim.",
       },
-      { property: "og:title", content: "Área do Noivo — Ateliê do Sim" },
+      { property: "og:title", content: "Área dos Noivos — Ateliê do Sim" },
       {
         property: "og:description",
         content: "Entre ou cadastre-se na área exclusiva de noivos da Ateliê do Sim.",
@@ -57,7 +57,7 @@ function AuthPage() {
           <EditableText
             as="h1"
             contentKey="auth.title"
-            defaultValue="Área do Noivo"
+            defaultValue="Área dos Noivos"
             className="mt-4 font-display text-3xl font-medium text-foreground"
           />
           <EditableText

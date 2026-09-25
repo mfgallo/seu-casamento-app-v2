@@ -8,6 +8,7 @@ import {
   listBrides,
   listGuests,
   sendInvites,
+  updateGuest,
   type BulkImportResult,
   type RsvpStatus,
 } from "@/lib/guests-api";
@@ -25,6 +26,7 @@ import {
 import {
   CheckCircle2,
   Clock,
+  ExternalLink,
   HelpCircle,
   Loader2,
   Send,
@@ -264,6 +266,11 @@ function ImportCard() {
           Coluna opcional <code className="text-foreground">genero</code> (F/M) — convidadas (F)
           recebem uma pergunta extra sobre número de chinelo depois de confirmar presença.
         </p>
+        <p className="text-sm text-muted-foreground">
+          Coluna opcional <code className="text-foreground">padrinho</code> (sim/não) — marca o
+          convidado como padrinho/madrinha, liberando informações extras (vestimenta e instruções)
+          na página pessoal dele.
+        </p>
 
         <div>
           <Button type="button" onClick={() => inputRef.current?.click()} disabled={isImporting}>
@@ -427,6 +434,7 @@ function GuestListCard({
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<RsvpStatus | "all">("all");
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const { data: guests, isLoading } = useQuery({
     queryKey: ["guests-list", filter, brideName],
@@ -441,6 +449,16 @@ function GuestListCard({
       await queryClient.invalidateQueries({ queryKey: ["guests-summary"] });
     } finally {
       setSendingId(null);
+    }
+  };
+
+  const handleTogglePadrinho = async (guestId: string, current: boolean) => {
+    setTogglingId(guestId);
+    try {
+      await updateGuest(guestId, { is_padrinho: !current });
+      await queryClient.invalidateQueries({ queryKey: ["guests-list"] });
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -483,13 +501,47 @@ function GuestListCard({
                   <TableHead>Acompanhantes confirmados</TableHead>
                   <TableHead>Chinelo</TableHead>
                   <TableHead>Observações</TableHead>
+                  <TableHead>Página do convidado</TableHead>
                   {showSendColumn && <TableHead className="text-right">Convite</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {guests.map((guest) => (
                   <TableRow key={guest.guest_id}>
-                    <TableCell className="font-medium text-foreground">{guest.name}</TableCell>
+                    <TableCell className="font-medium text-foreground">
+                      <div className="flex items-center gap-2">
+                        {guest.name}
+                        {showSendColumn ? (
+                          <button
+                            type="button"
+                            disabled={togglingId === guest.guest_id}
+                            onClick={() => handleTogglePadrinho(guest.guest_id, guest.is_padrinho)}
+                            className={`rounded-full px-2 py-0.5 text-xs font-medium transition-colors disabled:opacity-50 ${
+                              guest.is_padrinho
+                                ? "bg-olive text-primary-foreground hover:bg-olive/90"
+                                : "border border-border text-muted-foreground hover:bg-secondary"
+                            }`}
+                            title={
+                              guest.is_padrinho
+                                ? "Clique para remover de padrinho/madrinha"
+                                : "Clique para marcar como padrinho/madrinha"
+                            }
+                          >
+                            {togglingId === guest.guest_id ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : guest.is_padrinho ? (
+                              "Padrinho"
+                            ) : (
+                              "+ Padrinho"
+                            )}
+                          </button>
+                        ) : (
+                          guest.is_padrinho && (
+                            <Badge className="bg-olive/10 text-olive">Padrinho</Badge>
+                          )
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>{guest.phone_e164}</TableCell>
                     <TableCell>{guest.party_size}</TableCell>
                     <TableCell>
@@ -504,6 +556,17 @@ function GuestListCard({
                       {guest.shoe_size ?? "—"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{guest.notes ?? "—"}</TableCell>
+                    <TableCell>
+                      <a
+                        href={`/convite/${guest.guest_id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm text-olive hover:underline"
+                      >
+                        Ver convite
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    </TableCell>
                     {showSendColumn && (
                       <TableCell className="text-right">
                         <Button
